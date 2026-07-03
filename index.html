@@ -958,7 +958,7 @@
       background: rgba(10, 14, 30, 0.6);
       border: 1px solid var(--glass-border);
       border-radius: 25px;
-      padding: 14px 50px 14px 20px;
+      padding: 14px 50px 14px 45px;
       color: var(--text-main);
       font-family: var(--font-body);
       font-size: 0.95rem;
@@ -972,6 +972,45 @@
     .chat-textarea:focus {
       border-color: var(--accent-primary);
       box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+    }
+
+    .attach-btn-trigger {
+      position: absolute;
+      left: 15px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.15rem;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    .attach-btn-trigger:hover {
+      color: var(--text-main);
+    }
+
+    .delete-msg-btn {
+      opacity: 0;
+      transition: opacity 0.2s;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .message-card:hover .delete-msg-btn {
+      opacity: 1;
+    }
+    .delete-msg-btn:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
     }
 
     .emoji-trigger {
@@ -1775,7 +1814,7 @@
           <aside class="chat-sidebar" id="sidebar">
             <!-- Current Profile bar -->
             <div class="sidebar-profile">
-              <div class="profile-meta">
+              <div class="profile-meta" onclick="openProfileModal()" style="cursor: pointer;" title="Manage Profile">
                 <div class="avatar online" id="userAvatar">U</div>
                 <div class="profile-info">
                   <span class="profile-name" id="userName">User Profile</span>
@@ -1893,13 +1932,7 @@
                       <line x1="17" y1="9" x2="23" y2="15"/>
                     </svg>
                   </button>
-                  <!-- Settings Button -->
-                  <button class="action-btn" onclick="openSettings()" title="Settings">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="3"/>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
-                  </button>
+                  <!-- Settings Button Removed -->
                 </div>
               </header>
 
@@ -1921,8 +1954,24 @@
 
               <!-- Chat Inputs -->
               <div class="chat-input-bar">
+                <!-- Attachment Preview Area -->
+                <div id="attachmentPreviewArea" style="display: none; padding: 10px; background: rgba(10, 14, 30, 0.4); border-radius: var(--border-radius-md); border: 1px solid var(--glass-border); margin-bottom: 10px; align-items: center; gap: 12px; position: relative;">
+                  <div id="previewThumbnail" style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border);"></div>
+                  <div style="flex: 1; overflow: hidden;">
+                    <div id="previewFileName" style="font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);">filename.png</div>
+                    <div id="previewFileSize" style="font-size: 0.75rem; color: var(--text-muted);">120 KB</div>
+                  </div>
+                  <button class="action-btn" onclick="clearAttachment()" style="padding: 6px; color: #ef4444;" title="Remove Attachment">✕</button>
+                </div>
+
                 <div class="chat-input-form">
                   <div class="input-wrapper">
+                    <button class="attach-btn-trigger" onclick="triggerFileSelect(event)" title="Attach Photo/Video" type="button">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                      </svg>
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*,video/*" style="display: none;" onchange="handleFileSelected(event)">
                     <input type="text" id="messageInput" class="chat-textarea" placeholder="Type a message, press Enter to send..." autocomplete="off" onkeydown="handleMessageKeydown(event)" oninput="handleTypingChange()">
                     <button class="emoji-trigger" onclick="toggleEmojiPicker(event)">😊</button>
                     
@@ -1962,63 +2011,119 @@
 
   <!-- DISCOVER NETWORK MODAL REMOVED -->
 
-  <!-- SETTINGS MODAL -->
+  <!-- SETTINGS / USER PROFILE MODAL -->
   <div class="modal-overlay" id="settingsModal" onclick="closeSettings(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <span>Nova Workspace Settings</span>
+        <span id="modalHeaderTitle">Nova Workspace Settings</span>
         <button class="modal-close" onclick="closeSettings()">&times;</button>
       </div>
       
-      <div class="modal-setting-row">
-        <div class="setting-label">
-          <span class="setting-title">Synthesize Sound Effects</span>
-          <span class="setting-desc">Use Web Audio API for message chime tones.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="settingsSound" onchange="syncSoundSetting(this.checked)" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
+      <div style="display: flex; flex-direction: column; gap: 15px; text-align: left; max-height: 70vh; overflow-y: auto; padding-right: 5px;">
+        <!-- Profile Form Fields (Visible only when logged in) -->
+        <div id="profileFields" style="display: none; flex-direction: column; gap: 15px;">
+          <div class="form-group">
+            <label>User ID</label>
+            <input type="text" id="profileUserId" class="form-input" style="background: rgba(255,255,255,0.05); color: var(--text-dim);" readonly>
+          </div>
 
-      <div class="modal-setting-row">
-        <div class="setting-label">
-          <span class="setting-title">Hide Online Status / Last Seen</span>
-          <span class="setting-desc">Others will see you as offline.</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="settingsHideStatus" onchange="toggleStatusPrivacy(this.checked)">
-          <span class="slider"></span>
-        </label>
-      </div>
+          <div class="form-group">
+            <label for="profileName">Display Name</label>
+            <input type="text" id="profileName" class="form-input" placeholder="Enter display name..." maxlength="15">
+          </div>
 
-      <div class="modal-setting-row">
-        <div class="setting-label">
-          <span class="setting-title">Clear Message Cache</span>
-          <span class="setting-desc">Permanently wipe LocalStorage chat history.</span>
-        </div>
-        <button class="demo-toggle-btn active" style="padding: 6px 12px;" onclick="wipeCache()">Wipe Data</button>
-      </div>
+          <div class="form-group">
+            <label for="profilePassword">Password</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="profilePassword" class="form-input" placeholder="Enter new password..." maxlength="30">
+              <button class="password-toggle-btn" onclick="togglePasswordVisibility('profilePassword', this)" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
 
-      <!-- Firebase Database Configuration -->
-      <div id="devDbConfig" style="display: none; border-top: 1px solid var(--glass-border); padding: 15px 0; margin-top: 10px; text-align: left;">
-        <span class="setting-title" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 4px; color: var(--text-main);">Firebase Cloud Database</span>
-        <span class="setting-desc" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">Paste your Firebase settings to connect your private database 24/7.</span>
-        
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <input type="text" id="dbApiKey" class="form-input" placeholder="API Key (apiKey)" style="padding: 10px; font-size: 0.8rem; background: rgba(10, 14, 30, 0.6);">
-          <input type="text" id="dbUrl" class="form-input" placeholder="Database URL (databaseURL)" style="padding: 10px; font-size: 0.8rem; background: rgba(10, 14, 30, 0.6);">
-          <input type="text" id="dbProjectId" class="form-input" placeholder="Project ID (projectId)" style="padding: 10px; font-size: 0.8rem; background: rgba(10, 14, 30, 0.6);">
-          <button class="demo-toggle-btn" style="padding: 10px; width: 100%; justify-content: center; font-weight: bold; background: var(--accent-gradient); border-color: transparent;" onclick="saveDbConfig()">Save & Reconnect</button>
-        </div>
-      </div>
+          <div class="form-group">
+            <label for="profileSecQuestion">Security Question</label>
+            <select id="profileSecQuestion" class="form-select">
+              <option value="cosmic">What is your favorite celestial body or constellation?</option>
+              <option value="spaceship">What was the name of your first spacecraft (first pet/car)?</option>
+              <option value="hometown">On which planet/city were you born?</option>
+              <option value="code">What is your secret cosmic pass-code?</option>
+            </select>
+          </div>
 
-      <div class="modal-setting-row">
-        <div class="setting-label">
-          <span class="setting-title">About Nova</span>
-          <span class="setting-desc">Self-contained, cross-tab reactive chat interface.</span>
+          <div class="form-group">
+            <label for="profileSecAnswer">Security Answer</label>
+            <input type="text" id="profileSecAnswer" class="form-input" placeholder="Enter security answer..." maxlength="50">
+          </div>
+
+          <div class="form-group">
+            <label>Profile Theme Accent</label>
+            <div class="theme-picker" id="profileThemePicker">
+              <div class="theme-option theme-indigo" data-theme="indigo" onclick="selectProfileTheme('indigo')"></div>
+              <div class="theme-option theme-emerald" data-theme="emerald" onclick="selectProfileTheme('emerald')"></div>
+              <div class="theme-option theme-rose" data-theme="rose" onclick="selectProfileTheme('rose')"></div>
+              <div class="theme-option theme-cyan" data-theme="cyan" onclick="selectProfileTheme('cyan')"></div>
+              <div class="theme-option theme-amber" data-theme="amber" onclick="selectProfileTheme('amber')"></div>
+            </div>
+          </div>
         </div>
-        <div style="font-size: 0.8rem; font-weight:600; color: var(--accent-primary);">v1.0.0</div>
+
+        <!-- Sound setting row -->
+        <div class="modal-setting-row" id="profileSettingsSoundRow">
+          <div class="setting-label">
+            <span class="setting-title">Synthesize Sound Effects</span>
+            <span class="setting-desc">Use Web Audio API for message chime tones.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="settingsSound" onchange="syncSoundSetting(this.checked)" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Privacy setting row -->
+        <div class="modal-setting-row" id="profileSettingsHideStatusRow">
+          <div class="setting-label">
+            <span class="setting-title">Hide Online Status / Last Seen</span>
+            <span class="setting-desc">Others will see you as offline.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="settingsHideStatus" onchange="toggleStatusPrivacy(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Save profile button (visible only when logged in) -->
+        <button class="login-btn" id="profileSaveBtn" onclick="saveProfileChanges()" style="display: none; margin-top: 10px;">Save Profile Changes</button>
+
+        <!-- Wipe Cache / Logout -->
+        <div style="display: flex; gap: 10px; margin-top: 5px;" id="profileWipeRow">
+          <button class="demo-toggle-btn active" style="flex: 1; justify-content: center; padding: 10px;" onclick="wipeCache()">Wipe Data</button>
+        </div>
+
+        <!-- Firebase Database Configuration -->
+        <div id="devDbConfig" style="display: none; border-top: 1px solid var(--glass-border); padding: 15px 0; margin-top: 10px; text-align: left;">
+          <span class="setting-title" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 4px; color: var(--text-main);">Firebase Cloud Database</span>
+          <span class="setting-desc" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.3;">Paste your Firebase settings to connect your private database 24/7.</span>
+          
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="dbApiKey" class="form-input" placeholder="API Key (apiKey)" style="padding: 10px; font-size: 0.8rem; background: rgba(10, 14, 30, 0.6);">
+            <input type="text" id="dbUrl" class="form-input" placeholder="Database URL (databaseURL)" style="padding: 10px; font-size: 0.8rem; background: rgba(10, 14, 30, 0.6);">
+            <input type="text" id="dbProjectId" class="form-input" placeholder="Project ID (projectId)" style="padding: 10px; font-size: 0.8rem; background: rgba(10, 14, 30, 0.6);">
+            <button class="demo-toggle-btn" style="padding: 10px; width: 100%; justify-content: center; font-weight: bold; background: var(--accent-gradient); border-color: transparent;" onclick="saveDbConfig()">Save & Reconnect</button>
+          </div>
+        </div>
+
+        <div class="modal-setting-row">
+          <div class="setting-label">
+            <span class="setting-title">About Nova</span>
+            <span class="setting-desc">Self-contained, cross-tab reactive chat interface.</span>
+          </div>
+          <div style="font-size: 0.8rem; font-weight:600; color: var(--accent-primary);">v1.0.0</div>
+        </div>
       </div>
     </div>
   </div>
@@ -2070,6 +2175,7 @@
           <div class="video-label">You (Local)</div>
         </div>
         <div class="video-feed">
+          <video id="remoteVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
           <div class="video-avatar-placeholder" id="remoteVideoAvatar">F</div>
           <div class="waveform-visualizer" id="remoteVideoWave" style="display: none;">
             <div class="wave-bar" style="animation-delay: 0.1s;"></div>
@@ -2163,8 +2269,20 @@
     let myLastMessages = {};
     let lastMessagesListenerRef = null;
 
+    // WebRTC connection and signaling variables
+    let peerConnection = null;
+    let signalingOfferListenerRef = null;
+    let signalingAnswerListenerRef = null;
+    let signalingCandidatesListenerRef = null;
+
     // clientTabId will store our logged-in unique ID (e.g. mobile or username)
     let clientTabId = null;
+
+    // Attachment & Profile temporary states
+    let attachedFileData = null;
+    let attachedFileType = null;
+    let attachedFileName = null;
+    let profileSelectedTheme = 'indigo';
 
     const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -2282,6 +2400,16 @@
           const callData = getLocalStorageJSON(`nebula_local_call_${userId}`, null);
           return callData ? callData[subKey] : null;
         }
+        if (parts.length === 4) {
+          const userId = parts[1];
+          const subKey = parts[2];
+          const subSubKey = parts[3];
+          const callData = getLocalStorageJSON(`nebula_local_call_${userId}`, null);
+          if (callData && callData[subKey]) {
+            return callData[subKey][subSubKey] || null;
+          }
+          return null;
+        }
       } else if (root === 'last_messages') {
         if (parts.length === 1) {
           return getLocalStorageJSON('nebula_local_last_messages', {});
@@ -2379,6 +2507,18 @@
           const subKey = parts[2];
           const callData = getLocalStorageJSON(`nebula_local_call_${userId}`, {});
           callData[subKey] = value;
+          setLocalStorageJSON(`nebula_local_call_${userId}`, callData);
+        } else if (parts.length === 4) {
+          const userId = parts[1];
+          const subKey = parts[2];
+          const subSubKey = parts[3];
+          const callData = getLocalStorageJSON(`nebula_local_call_${userId}`, {});
+          if (!callData[subKey]) callData[subKey] = {};
+          if (value === null) {
+            delete callData[subKey][subSubKey];
+          } else {
+            callData[subKey][subSubKey] = value;
+          }
           setLocalStorageJSON(`nebula_local_call_${userId}`, callData);
         }
       } else if (root === 'last_messages') {
@@ -2985,8 +3125,10 @@
             name: regUsernameVal,
             theme: selectedTheme,
             password: simpleHash(regPasswordVal),
+            passwordPlain: regPasswordVal,
             sec_question: regSecQuestion,
             sec_answer: simpleHash(regSecAnswer),
+            secAnswerPlain: regSecAnswer,
             last_seen: Date.now()
           };
 
@@ -3582,9 +3724,63 @@
       }
 
       messagesToDisplay.forEach(msg => {
+        // Render call logs as special system message cards inside the bubble list
+        if (msg.callLog) {
+          const card = document.createElement('div');
+          card.className = 'system-message';
+          card.innerHTML = `<span style="background: rgba(255, 255, 255, 0.05); padding: 4px 12px; border-radius: var(--border-radius-md); border: 1px solid rgba(255, 255, 255, 0.03);">${escapeHTML(msg.text)}</span>`;
+          container.appendChild(card);
+          return;
+        }
+
         const isSelf = msg.senderId === clientTabId;
         const msgTime = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
+        let textContent = '';
+        let fileContent = '';
+
+        if (msg.unsent) {
+          if (isSelf) {
+            textContent = `<i style="color: rgba(255, 255, 255, 0.5);">🚫 You unsent this message</i>`;
+          } else {
+            textContent = `${escapeHTML(msg.text)} <span class="unsend-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;">[Sender unsent this]</span>`;
+            if (msg.fileData) {
+              if (msg.fileType === 'image') {
+                fileContent = `
+                  <div style="margin-top: 6px; position: relative;">
+                    <img src="${msg.fileData}" style="max-width: 250px; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);" onclick="window.open('${msg.fileData}', '_blank')">
+                    <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">Unsent Image</div>
+                  </div>
+                `;
+              } else if (msg.fileType === 'video') {
+                fileContent = `
+                  <div style="margin-top: 6px; position: relative;">
+                    <video src="${msg.fileData}" controls style="max-width: 250px; max-height: 200px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);"></video>
+                    <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem;">Unsent Video</div>
+                  </div>
+                `;
+              }
+            }
+          }
+        } else {
+          textContent = escapeHTML(msg.text);
+          if (msg.fileData) {
+            if (msg.fileType === 'image') {
+              fileContent = `
+                <div style="margin-top: 6px;">
+                  <img src="${msg.fileData}" style="max-width: 250px; max-height: 200px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);" onclick="window.open('${msg.fileData}', '_blank')">
+                </div>
+              `;
+            } else if (msg.fileType === 'video') {
+              fileContent = `
+                <div style="margin-top: 6px;">
+                  <video src="${msg.fileData}" controls style="max-width: 250px; max-height: 200px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);"></video>
+                </div>
+              `;
+            }
+          }
+        }
+
         let reactionHTML = '';
         if (msg.reactions) {
           Object.entries(msg.reactions).forEach(([emoji, users]) => {
@@ -3603,14 +3799,29 @@
         const card = document.createElement('div');
         card.className = `message-card ${isSelf ? 'self' : ''}`;
         card.dataset.msgId = msg.id;
+
+        const deleteButtonHTML = isSelf && !msg.unsent ? `
+          <button class="delete-msg-btn" onclick="unsendMessage('${msg.id}')" title="Unsend Message">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        ` : '';
+
         card.innerHTML = `
           <div class="avatar" style="width:34px; height:34px; font-size:0.8rem; background: ${isSelf ? themes[currentUser.theme].gradient : themes[msg.senderTheme || 'indigo'].gradient}; flex-shrink: 0;">
             ${msg.senderName.charAt(0).toUpperCase()}
           </div>
           
           <div class="message-bubble">
-            <span class="message-sender">${msg.senderName}</span>
-            <span class="message-text">${escapeHTML(msg.text)}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap: 8px;">
+              <span class="message-sender">${msg.senderName}</span>
+              ${deleteButtonHTML}
+            </div>
+            
+            ${textContent ? `<span class="message-text">${textContent}</span>` : ''}
+            ${fileContent}
             
             <div class="message-meta">
               <span>${msgTime}</span>
@@ -3689,7 +3900,10 @@
     function submitMessage() {
       const input = document.getElementById('messageInput');
       const text = input.value.trim();
-      if (!text || !currentUser) return;
+      
+      // Allow sending either text OR an attachment
+      if (!text && !attachedFileData) return;
+      if (!currentUser) return;
 
       if (activeChatUser && (!myFriends || !myFriends[activeChatUser])) {
         alert("You can only send Direct Messages to mutual friends.");
@@ -3701,17 +3915,25 @@
         senderId: clientTabId,
         senderName: currentUser.name,
         senderTheme: currentUser.theme,
-        text: text,
+        text: text || '',
         timestamp: Date.now(),
         room: activeChannel,
         reactions: {}
       };
+
+      if (attachedFileData) {
+        messageObj.fileData = attachedFileData;
+        messageObj.fileType = attachedFileType;
+        messageObj.fileName = attachedFileName;
+      }
 
       allMessages.push(messageObj);
       stopTypingStatus();
 
       input.value = '';
       input.style.height = '48px';
+      
+      clearAttachment();
 
       renderMessageHistory();
       scrollToBottom();
@@ -4203,9 +4425,47 @@
       }
     }
 
+    let currentCallOffer = null;
+
+    function createPeerConnection(peerId) {
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+
+      peerConnection = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' }
+        ]
+      });
+
+      // Handle ICE Candidates
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          const candId = generateId();
+          const candRef = dbRef(db, `calls/${peerId}/candidates/${candId}`);
+          dbSet(candRef, event.candidate.toJSON())
+            .catch(err => console.error("Error writing ICE candidate to DB:", err));
+        }
+      };
+
+      // Handle Remote Stream Track Arrival
+      peerConnection.ontrack = (event) => {
+        console.log("Remote track received:", event.streams[0]);
+        const remoteVideo = document.getElementById('remoteVideo');
+        const remoteAvatar = document.getElementById('remoteVideoAvatar');
+        if (remoteVideo && event.streams[0]) {
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.style.display = 'block';
+          if (remoteAvatar) remoteAvatar.style.display = 'none';
+        }
+      };
+    }
+
     function handleCallSignaling(callData) {
       if (!callData) {
         if (callState) {
+          logCallHistoryMessage();
           terminateCallUI();
         }
         return;
@@ -4218,14 +4478,27 @@
           peerId: callData.callerId,
           peerName: callData.callerName,
           peerTheme: callData.callerTheme,
-          type: callData.type
+          type: callData.type,
+          isCaller: false
         };
+        currentCallOffer = null;
+
+        // Listen for the offer
+        const offerRef = dbRef(db, `calls/${clientTabId}/offer`);
+        if (signalingOfferListenerRef) {
+          dbOff(offerRef);
+        }
+        signalingOfferListenerRef = dbOnValue(offerRef, (snapshot) => {
+          currentCallOffer = snapshot.val();
+        });
+
         showIncomingCallUI(callData);
       } else if (callData.status === 'accepted') {
         if (callState === 'calling') {
           startActiveCall(callData.type);
         }
       } else if (callData.status === 'declined' || callData.status === 'ended') {
+        logCallHistoryMessage();
         terminateCallUI();
       }
     }
@@ -4245,7 +4518,8 @@
         peerId: activeChatUser,
         peerName: peerUser ? peerUser.name : activeChatUser,
         peerTheme: peerUser ? peerUser.theme : 'indigo',
-        type: type
+        type: type,
+        isCaller: true
       };
 
       const overlay = document.getElementById('callOverlay');
@@ -4282,8 +4556,71 @@
         timestamp: Date.now()
       };
 
-      dbSet(dbRef(db, `calls/${activeChatUser}`), callDataForPeer);
-      dbSet(dbRef(db, `calls/${clientTabId}`), callDataForSelf);
+      dbSet(dbRef(db, `calls/${activeChatUser}`), callDataForPeer)
+        .then(() => dbSet(dbRef(db, `calls/${clientTabId}`), callDataForSelf))
+        .then(() => {
+          createPeerConnection(activeCallPeer);
+
+          const constraints = {
+            audio: true,
+            video: type === 'video'
+          };
+          return navigator.mediaDevices.getUserMedia(constraints);
+        })
+        .then(stream => {
+          localStream = stream;
+          const localVideo = document.getElementById('localVideo');
+          const localAvatar = document.getElementById('localVideoAvatar');
+          if (type === 'video' && localVideo) {
+            localVideo.srcObject = stream;
+            localVideo.style.display = 'block';
+            if (localAvatar) localAvatar.style.display = 'none';
+          }
+
+          stream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, stream);
+          });
+
+          return peerConnection.createOffer();
+        })
+        .then(offer => {
+          return peerConnection.setLocalDescription(offer);
+        })
+        .then(() => {
+          return dbSet(dbRef(db, `calls/${activeCallPeer}/offer`), {
+            sdp: peerConnection.localDescription.sdp,
+            type: peerConnection.localDescription.type
+          });
+        })
+        .then(() => {
+          const answerRef = dbRef(db, `calls/${clientTabId}/answer`);
+          signalingAnswerListenerRef = dbOnValue(answerRef, (snapshot) => {
+            const answer = snapshot.val();
+            if (answer && peerConnection && peerConnection.signalingState === 'have-local-offer') {
+              peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+                .catch(err => console.error("Error setting remote description:", err));
+            }
+          });
+
+          const addedCandidates = new Set();
+          const candidatesRef = dbRef(db, `calls/${clientTabId}/candidates`);
+          signalingCandidatesListenerRef = dbOnValue(candidatesRef, (snapshot) => {
+            const candidates = snapshot.val();
+            if (!candidates || !peerConnection) return;
+            Object.entries(candidates).forEach(([id, candData]) => {
+              if (!addedCandidates.has(id)) {
+                addedCandidates.add(id);
+                peerConnection.addIceCandidate(new RTCIceCandidate(candData))
+                  .catch(err => console.error("Error adding remote candidate:", err));
+              }
+            });
+          });
+        })
+        .catch(err => {
+          console.error("Error initiating call:", err);
+          alert("Could not access camera/microphone or initiate call: " + err.message);
+          declineCall();
+        });
     }
 
     function showIncomingCallUI(callData) {
@@ -4307,24 +4644,159 @@
       playRingingTone(true);
     }
 
+    function logCallHistoryMessage() {
+      if (!currentCall || !currentCall.isCaller) return;
+      if (!clientTabId || !currentCall.peerId) return;
+
+      let logText = '';
+      if (callState === 'active') {
+        const m = Math.floor(callSeconds / 60).toString().padStart(2, '0');
+        const s = (callSeconds % 60).toString().padStart(2, '0');
+        logText = `📞 ${currentCall.type === 'video' ? 'Video' : 'Voice'} Call (Duration: ${m}:${s})`;
+      } else {
+        logText = `📞 Missed Call`;
+      }
+
+      const room = getDMChannelId(clientTabId, currentCall.peerId);
+      const logMessageObj = {
+        id: generateId(),
+        senderId: 'system',
+        senderName: 'System',
+        senderTheme: 'indigo',
+        text: logText,
+        timestamp: Date.now(),
+        room: room,
+        callLog: true
+      };
+
+      dbSet(dbRef(db, `messages/${room}/${logMessageObj.id}`), logMessageObj)
+        .then(() => {
+          dbSet(dbRef(db, `last_messages/${room}`), {
+            id: logMessageObj.id,
+            senderId: 'system',
+            text: logText,
+            timestamp: logMessageObj.timestamp,
+            room: room
+          });
+        })
+        .catch(err => console.error("Error writing call log:", err));
+    }
+
     function answerCall() {
       if (!currentCall) return;
       playRingingTone(false);
 
       const peerId = currentCall.peerId;
       
-      dbSet(dbRef(db, `calls/${clientTabId}/status`), 'accepted');
-      dbSet(dbRef(db, `calls/${peerId}/status`), 'accepted');
+      if (signalingOfferListenerRef) {
+        dbOff(dbRef(db, `calls/${clientTabId}/offer`));
+        signalingOfferListenerRef = null;
+      }
 
-      startActiveCall(currentCall.type);
+      if (!currentCallOffer) {
+        console.warn("Offer not received yet, fetching...");
+        dbGet(dbRef(db, `calls/${clientTabId}/offer`))
+          .then(snapshot => {
+            const offer = snapshot.val();
+            if (offer) {
+              currentCallOffer = offer;
+              proceedWithAnswer();
+            } else {
+              alert("Failed to receive call connection offer from caller.");
+              declineCall();
+            }
+          })
+          .catch(err => {
+            console.error("Error fetching offer:", err);
+            declineCall();
+          });
+      } else {
+        proceedWithAnswer();
+      }
+
+      function proceedWithAnswer() {
+        createPeerConnection(peerId);
+
+        const constraints = {
+          audio: true,
+          video: currentCall.type === 'video'
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
+          .then(stream => {
+            localStream = stream;
+            const localVideo = document.getElementById('localVideo');
+            const localAvatar = document.getElementById('localVideoAvatar');
+            if (currentCall.type === 'video' && localVideo) {
+              localVideo.srcObject = stream;
+              localVideo.style.display = 'block';
+              if (localAvatar) localAvatar.style.display = 'none';
+            }
+
+            stream.getTracks().forEach(track => {
+              peerConnection.addTrack(track, stream);
+            });
+
+            return peerConnection.setRemoteDescription(new RTCSessionDescription(currentCallOffer));
+          })
+          .then(() => {
+            return peerConnection.createAnswer();
+          })
+          .then(answer => {
+            return peerConnection.setLocalDescription(answer);
+          })
+          .then(() => {
+            return dbSet(dbRef(db, `calls/${peerId}/answer`), {
+              sdp: peerConnection.localDescription.sdp,
+              type: peerConnection.localDescription.type
+            });
+          })
+          .then(() => {
+            const addedCandidates = new Set();
+            const candidatesRef = dbRef(db, `calls/${clientTabId}/candidates`);
+            signalingCandidatesListenerRef = dbOnValue(candidatesRef, (snapshot) => {
+              const candidates = snapshot.val();
+              if (!candidates || !peerConnection) return;
+              Object.entries(candidates).forEach(([id, candData]) => {
+                if (!addedCandidates.has(id)) {
+                  addedCandidates.add(id);
+                  peerConnection.addIceCandidate(new RTCIceCandidate(candData))
+                    .catch(err => console.error("Error adding remote candidate:", err));
+                }
+              });
+            });
+
+            dbSet(dbRef(db, `calls/${clientTabId}/status`), 'accepted');
+            dbSet(dbRef(db, `calls/${peerId}/status`), 'accepted');
+
+            startActiveCall(currentCall.type);
+          })
+          .catch(err => {
+            console.error("Error during call answering:", err);
+            alert("Could not access camera/microphone or answer call: " + err.message);
+            declineCall();
+          });
+      }
     }
 
     function declineCall() {
       playRingingTone(false);
       const peerId = activeCallPeer || (currentCall ? currentCall.peerId : null);
       
-      if (clientTabId) dbRemove(dbRef(db, `calls/${clientTabId}`));
-      if (peerId) dbRemove(dbRef(db, `calls/${peerId}`));
+      if (clientTabId) {
+        const nextStatus = (callState === 'active') ? 'ended' : 'declined';
+        logCallHistoryMessage();
+        
+        if (peerId) {
+          dbSet(dbRef(db, `calls/${peerId}/status`), nextStatus)
+            .then(() => {
+              dbRemove(dbRef(db, `calls/${clientTabId}`));
+              dbRemove(dbRef(db, `calls/${peerId}`));
+            });
+        } else {
+          dbRemove(dbRef(db, `calls/${clientTabId}`));
+        }
+      }
 
       terminateCallUI();
     }
@@ -4352,13 +4824,24 @@
         voiceWave.style.display = 'none';
         videoToggleBtn.style.display = 'flex';
 
-        setupLocalCamera();
+        if (!localStream) {
+          setupLocalCamera();
+        }
         
         const remoteAvatar = document.getElementById('remoteVideoAvatar');
         const remoteWave = document.getElementById('remoteVideoWave');
         remoteAvatar.innerText = currentCall.peerName.charAt(0).toUpperCase();
         remoteAvatar.style.background = themes[currentCall.peerTheme].gradient;
-        remoteAvatar.style.display = 'flex';
+        
+        const remoteVideo = document.getElementById('remoteVideo');
+        if (remoteVideo && remoteVideo.srcObject) {
+          remoteVideo.style.display = 'block';
+          remoteAvatar.style.display = 'none';
+        } else {
+          remoteVideo.style.display = 'none';
+          remoteAvatar.style.display = 'flex';
+        }
+        
         remoteWave.style.display = 'flex';
         document.getElementById('remoteVideoLabel').innerText = currentCall.peerName;
       } else {
@@ -4416,6 +4899,36 @@
       const localVideo = document.getElementById('localVideo');
       if (localVideo) localVideo.srcObject = null;
 
+      const remoteVideo = document.getElementById('remoteVideo');
+      const remoteAvatar = document.getElementById('remoteVideoAvatar');
+      if (remoteVideo) {
+        remoteVideo.srcObject = null;
+        remoteVideo.style.display = 'none';
+      }
+      if (remoteAvatar) {
+        remoteAvatar.style.display = 'flex';
+      }
+
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+
+      if (signalingOfferListenerRef) {
+        dbOff(dbRef(db, `calls/${clientTabId}/offer`));
+        signalingOfferListenerRef = null;
+      }
+      if (signalingAnswerListenerRef) {
+        dbOff(dbRef(db, `calls/${clientTabId}/answer`));
+        signalingAnswerListenerRef = null;
+      }
+      if (signalingCandidatesListenerRef) {
+        dbOff(dbRef(db, `calls/${clientTabId}/candidates`));
+        signalingCandidatesListenerRef = null;
+      }
+
+      currentCallOffer = null;
+
       if (callDurationTimer) {
         clearInterval(callDurationTimer);
         callDurationTimer = null;
@@ -4467,6 +4980,169 @@
       }
     }
 
+    // --- USER PROFILE FUNCTIONS ---
+    function openProfileModal() {
+      if (!currentUser) return;
+      
+      document.getElementById('modalHeaderTitle').innerText = "User Profile Management";
+      document.getElementById('profileFields').style.display = 'flex';
+      document.getElementById('profileSaveBtn').style.display = 'block';
+      document.getElementById('profileWipeRow').style.display = 'flex';
+      
+      document.getElementById('profileUserId').value = clientTabId;
+      document.getElementById('profileName').value = currentUser.name;
+      
+      dbGet(dbRef(db, 'users/' + clientTabId)).then(snapshot => {
+        if (snapshot.exists()) {
+          const userData = snapshot.val();
+          document.getElementById('profilePassword').value = userData.passwordPlain || '';
+          document.getElementById('profileSecQuestion').value = userData.sec_question || 'cosmic';
+          document.getElementById('profileSecAnswer').value = userData.secAnswerPlain || '';
+          selectProfileTheme(userData.theme || 'indigo');
+        }
+      });
+      
+      document.getElementById('settingsSound').checked = soundEnabled;
+      document.getElementById('settingsHideStatus').checked = hideStatusEnabled;
+      
+      document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function closeProfileModal() {
+      closeSettings();
+    }
+
+    function selectProfileTheme(themeName) {
+      profileSelectedTheme = themeName;
+      document.querySelectorAll('#profileThemePicker .theme-option').forEach(el => {
+        el.classList.remove('selected');
+        if (el.dataset.theme === themeName) {
+          el.classList.add('selected');
+        }
+      });
+    }
+
+    function saveProfileChanges() {
+      const profileNameVal = document.getElementById('profileName').value.trim();
+      const profilePasswordVal = document.getElementById('profilePassword').value;
+      const profileSecQuestionVal = document.getElementById('profileSecQuestion').value;
+      const profileSecAnswerVal = document.getElementById('profileSecAnswer').value.trim().toLowerCase();
+
+      if (!profileNameVal || !profilePasswordVal || !profileSecAnswerVal) {
+        alert('Please fill out all profile fields, including Display Name, Password, and Security Answer.');
+        return;
+      }
+
+      dbGet(dbRef(db, 'users/' + clientTabId)).then(snapshot => {
+        const userData = snapshot.val() || {};
+        const updatedData = {
+          ...userData,
+          name: profileNameVal,
+          password: simpleHash(profilePasswordVal),
+          passwordPlain: profilePasswordVal,
+          sec_question: profileSecQuestionVal,
+          sec_answer: simpleHash(profileSecAnswerVal),
+          secAnswerPlain: profileSecAnswerVal,
+          theme: profileSelectedTheme
+        };
+        return dbSet(dbRef(db, 'users/' + clientTabId), updatedData);
+      }).then(() => {
+        currentUser.name = profileNameVal;
+        currentUser.theme = profileSelectedTheme;
+        selectedTheme = profileSelectedTheme;
+        applyThemeStyles(selectedTheme);
+        
+        localStorage.setItem('nebula_user_session', JSON.stringify({
+          userId: clientTabId,
+          passwordHash: simpleHash(profilePasswordVal)
+        }));
+
+        const avatarEl = document.getElementById('userAvatar');
+        avatarEl.innerText = currentUser.name.charAt(0).toUpperCase();
+        avatarEl.style.background = themes[selectedTheme].gradient;
+        document.getElementById('userName').innerText = currentUser.name;
+
+        alert('Profile updated successfully!');
+        closeProfileModal();
+      }).catch(err => {
+        console.error("Error saving profile:", err);
+        alert("Failed to save profile changes.");
+      });
+    }
+
+    // --- ATTACHMENT SHARING ---
+    function triggerFileSelect(e) {
+      e.stopPropagation();
+      document.getElementById('fileInput').click();
+    }
+
+    function handleFileSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const maxBytes = 1.5 * 1024 * 1024;
+      if (file.size > maxBytes) {
+        alert("File size exceeds the 1.5MB limit. Please select a smaller photo or video.");
+        e.target.value = '';
+        return;
+      }
+
+      attachedFileType = file.type.startsWith('video/') ? 'video' : 'image';
+      attachedFileName = file.name;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        attachedFileData = evt.target.result;
+        
+        const previewArea = document.getElementById('attachmentPreviewArea');
+        const thumbnail = document.getElementById('previewThumbnail');
+        const nameEl = document.getElementById('previewFileName');
+        const sizeEl = document.getElementById('previewFileSize');
+
+        nameEl.innerText = file.name;
+        sizeEl.innerText = formatBytes(file.size);
+
+        if (attachedFileType === 'image') {
+           thumbnail.innerHTML = `<img src="${attachedFileData}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        } else {
+           thumbnail.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-primary);"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
+        }
+
+        previewArea.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearAttachment() {
+      attachedFileData = null;
+      attachedFileType = null;
+      attachedFileName = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('attachmentPreviewArea').style.display = 'none';
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // --- MESSAGE UNSEND / ANTI-DELETE ---
+    function unsendMessage(msgId) {
+      if (confirm('Are you sure you want to unsend this message?')) {
+        dbSet(dbRef(db, `messages/${activeChannel}/${msgId}/unsent`), true)
+        .then(() => {
+          const lastMsg = myLastMessages[activeChannel];
+          if (lastMsg && lastMsg.id === msgId) {
+            dbSet(dbRef(db, `last_messages/${activeChannel}/unsent`), true);
+          }
+        })
+        .catch(err => console.error("Error unsending message:", err));
+      }
+    }
+
     // Bind module functions to the global window object so inline HTML handlers can call them
     window.toggleSplitScreen = toggleSplitScreen;
     window.handleLoginEnter = handleLoginEnter;
@@ -4508,6 +5184,14 @@
     window.performRegister = performRegister;
     window.recoverStep1 = recoverStep1;
     window.recoverStep2 = recoverStep2;
+    window.openProfileModal = openProfileModal;
+    window.closeProfileModal = closeProfileModal;
+    window.selectProfileTheme = selectProfileTheme;
+    window.saveProfileChanges = saveProfileChanges;
+    window.triggerFileSelect = triggerFileSelect;
+    window.handleFileSelected = handleFileSelected;
+    window.clearAttachment = clearAttachment;
+    window.unsendMessage = unsendMessage;
   </script>
 </body>
 </html>
